@@ -7,10 +7,12 @@
 
 nav {
     padding: 1rem;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
     background-color: #222;
     width: 100%;
     position: fixed;
-    text-align: right;
     top: 0px;
     color: white;
     text-decoration: none;
@@ -24,7 +26,6 @@ nav {
     text-decoration: none;
     font-family: 'Audiowide', sans-serif;
     font-weight: bolder;
-    float: left;
 }
 #accesototal:hover {
     text-shadow: 0 0 0.1rem white;
@@ -98,14 +99,18 @@ img {
 
 #contenedor-eventos {
     margin-top: 2rem;
-    display: grid;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    /* display: grid;
     gap: 1rem;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr); */
 }
 
 .card {
     transition: box-shadow 0.3s ease;
-    margin-bottom: 2rem;
+    width: 200px;
+    margin: 0 0.5rem 2rem 0.5rem;
     text-align: center;
     border-radius: 10px;
     background-color: rgb(216, 216, 216);
@@ -285,4 +290,35 @@ footer{
 
 footer p{
     text-align: right;
+}
+
+.contenedor-info{
+    padding: 1rem;
+    border-radius: 10px;
+    color: #ffffff;
+    background-color: #A02226;
+    width: 300px;
+    position:absolute;
+    z-index: 999;
+    display: none;
+    flex-flow: column nowrap;
+}
+
+.contenedor-info h2{
+    font-weight: bold;
+}
+
+.contenedor-track{
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    font-size: 0.7rem;
+}
+
+.titulo-top-tracks{
+    padding-bottom: 0.5rem;
+}
+
+@media (max-width: 500px){
+
 }

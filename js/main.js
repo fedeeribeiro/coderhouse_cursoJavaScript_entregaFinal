@@ -138,44 +138,48 @@ function agregarACarrito(id, entradas) {
         return evento.id == id;
     });
 
-    if(entradas != 0){
-        if(entradas <= eventoEncontrado.disponibles){
-            if(repetido(carritoDeCompras, id)){
-                for(let pedido of carritoDeCompras){
-                    if(pedido.id == id){
-                        pedido.entradas += entradas;
-                        pedido.precio += eventoEncontrado.precio * entradas;
+    if(JSON.parse(localStorage.getItem("usuarioActivo")).usuario){
+        if(entradas != 0){
+            if(entradas <= eventoEncontrado.disponibles){
+                if(repetido(carritoDeCompras, id)){
+                    for(let pedido of carritoDeCompras){
+                        if(pedido.id == id){
+                            pedido.entradas += entradas;
+                            pedido.precio += eventoEncontrado.precio * entradas;
+                        }
+                    }
+                }else{
+                    carritoDeCompras.push(new Pedido(eventoEncontrado.id, eventoEncontrado.nombre, entradas, eventoEncontrado.precio * entradas));
+                }
+                for(let evento of eventos){
+                    if(evento.id == id){
+                        evento.disponibles -= entradas;
                     }
                 }
-            }else{
-                carritoDeCompras.push(new Pedido(eventoEncontrado.id, eventoEncontrado.nombre, entradas, eventoEncontrado.precio * entradas));
-            }
-            for(let evento of eventos){
-                if(evento.id == id){
-                    evento.disponibles -= entradas;
-                }
-            }
-            notificarAgregadoAlCarrito();
-        }           
-    }
-    
-    if(eventoEncontrado.disponibles == 0 && !document.getElementById("aviso" + id)){
-        const avisoSinStock = document.createElement("h4");
-        const divEvento = document.getElementById("card" + id);
-        const parrafoUltimasEntradas = document.getElementById("ultimas-entradas" + id);
-        parrafoUltimasEntradas.innerHTML = "";
-        avisoSinStock.textContent = "Ya no quedan entradas para este evento.";
-        avisoSinStock.classList.add("aviso");
-        avisoSinStock.setAttribute("id", "aviso" + id);
-        divEvento.appendChild(avisoSinStock);
-    }else if(eventoEncontrado.disponibles > 1 && eventoEncontrado.disponibles <= 3){
-        const parrafoUltimasEntradas = document.getElementById("ultimas-entradas" + id);
-        parrafoUltimasEntradas.setAttribute("class", "ultimas-entradas");
-        parrafoUltimasEntradas.innerText = "¡Últimas " + eventoEncontrado.disponibles + " entradas disponibles!";
-    }else if(eventoEncontrado.disponibles == 1){
-        const parrafoUltimasEntradas = document.getElementById("ultimas-entradas" + id);
-        parrafoUltimasEntradas.setAttribute("class", "ultimas-entradas");
-        parrafoUltimasEntradas.innerText = "¡Última entrada disponible!";
+                notificarAgregadoAlCarrito();
+            }           
+        }
+        
+        if(eventoEncontrado.disponibles == 0 && !document.getElementById("aviso" + id)){
+            const avisoSinStock = document.createElement("h4");
+            const divEvento = document.getElementById("card" + id);
+            const parrafoUltimasEntradas = document.getElementById("ultimas-entradas" + id);
+            parrafoUltimasEntradas.innerHTML = "";
+            avisoSinStock.textContent = "Ya no quedan entradas para este evento.";
+            avisoSinStock.classList.add("aviso");
+            avisoSinStock.setAttribute("id", "aviso" + id);
+            divEvento.appendChild(avisoSinStock);
+        }else if(eventoEncontrado.disponibles > 1 && eventoEncontrado.disponibles <= 3){
+            const parrafoUltimasEntradas = document.getElementById("ultimas-entradas" + id);
+            parrafoUltimasEntradas.setAttribute("class", "ultimas-entradas");
+            parrafoUltimasEntradas.innerText = "¡Últimas " + eventoEncontrado.disponibles + " entradas disponibles!";
+        }else if(eventoEncontrado.disponibles == 1){
+            const parrafoUltimasEntradas = document.getElementById("ultimas-entradas" + id);
+            parrafoUltimasEntradas.setAttribute("class", "ultimas-entradas");
+            parrafoUltimasEntradas.innerText = "¡Última entrada disponible!";
+        }
+    }else{
+        notificarHayQueIniciarSesionParaAgregarAlCarrito();
     }
 }
 
@@ -185,7 +189,7 @@ const contenedorCarrito = document.getElementById("contenedor-carrito");
 
 // Función para mostrar en el carrito
 function mostrarEnCarrito(){
-    if(carritoDeCompras.length != 0){
+    if(carritoDeCompras.length != 0 && JSON.parse(localStorage.getItem("usuarioActivo")).usuario){
         contenedorCarrito.classList.remove("hidden");
     }
 
@@ -248,10 +252,36 @@ function notificarEliminadoDelCarrito(){
     }).showToast();
 }
 
-// Función para notificar que hay que iniciar sesión para confirmar el carito
+// Función para notificar que hay que iniciar sesión para confirmar el carrito
 function notificarHayQueIniciarSesion(){
     Toastify({
         text: "Tenés que iniciar sesión para confirmar tu carrito.",
+        duration: 3000,
+        gravity: "bottom",
+        position: "right",
+        style: {
+            background: "#e23431"
+        }
+    }).showToast();
+}
+
+// Función para notificar que hay que iniciar sesión para mostrar el carrito
+function notificarHayQueIniciarSesionParaMostrarElCarrito(){
+    Toastify({
+        text: "Tenés que iniciar sesión para ver el carrito.",
+        duration: 3000,
+        gravity: "bottom",
+        position: "right",
+        style: {
+            background: "#e23431"
+        }
+    }).showToast();
+}
+
+// Función para notificar que hay que iniciar sesión para mostrar el carrito
+function notificarHayQueIniciarSesionParaAgregarAlCarrito(){
+    Toastify({
+        text: "Tenés que iniciar sesión para agregar entradas al carrito.",
         duration: 3000,
         gravity: "bottom",
         position: "right",
@@ -441,6 +471,7 @@ botonSignOutHeader.addEventListener("click", function(e){
     const usuarioIniciado = JSON.parse(localStorage.getItem("usuarioActivo")).usuario;
     notificarCierreSesion(usuarioIniciado);
     localStorage.setItem("usuarioActivo", usuarioActivo);
+    document.getElementById("contenedor-carrito").classList.add("hidden");
     document.getElementById("formulario-sign-in").classList.remove("hidden");
     document.getElementById("sign-in-header").classList.remove("hidden");
     document.getElementById("sign-out-header").classList.add("hidden");
@@ -533,7 +564,11 @@ botonSignIn.addEventListener("click", (e) => {
 const botonCarritoHeader = document.getElementById("btn-carrito-header");
 
 botonCarritoHeader.addEventListener("click", () => {
-    contenedorCarrito.classList.contains("hidden") ? contenedorCarrito.classList.remove("hidden") : contenedorCarrito.classList.add("hidden");
+    if(JSON.parse(localStorage.getItem("usuarioActivo")).usuario){
+        contenedorCarrito.classList.contains("hidden") ? contenedorCarrito.classList.remove("hidden") : contenedorCarrito.classList.add("hidden");
+    }else{
+        notificarHayQueIniciarSesionParaMostrarElCarrito();
+    }
 });
 
 // Confirmar carrito
@@ -638,4 +673,227 @@ fetch("https://api.openweathermap.org/data/2.5/weather?q=Buenos%20Aires&units=me
         let iconurl = "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png";
         contenedorClima.innerHTML = `<div><span>Ciudad: ${data.name}</span></div>
                                      <div><span>Temperatura: ${data.main.temp}°C  <img id="img-clima" src="${iconurl}"></span></div>`;
-    })
+    });
+
+// Consumir API de Last.fm para ver las canciones más populares de los artistas
+const duaLipa = document.getElementById("titulo-dua-lipa");
+const topTracksDuaLipa = document.getElementById("hover-dua-lipa");
+
+topTracksDuaLipa.innerHTML = `<h2 class="titulo-top-tracks">Top Tracks</h2>`
+
+duaLipa.addEventListener("mouseover", (e) => {
+    topTracksDuaLipa.style.display = 'flex';
+    topTracksDuaLipa.style.top = e.pageY + "px";
+    topTracksDuaLipa.style.left = e.pageX + "px";
+});
+
+duaLipa.addEventListener("mouseout", () => {
+    topTracksDuaLipa.style.display = 'none';
+});
+
+fetch("https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=Dua+Lipa&api_key=2d78cc4f3a25bf3251afab29758dc402&format=json&limit=5")
+    .then(response => response.json())
+    .then(data => {
+    let i = 1;
+    for(let track of data.toptracks.track){
+        const trackName = document.createElement("div");
+        const trackListeners = document.createElement("div");
+        const contenedorTrack = document.createElement("div");
+
+        contenedorTrack.classList.add("contenedor-track");
+
+        trackName.innerHTML = `<p>${i}. ${track.name}</p>`
+        trackListeners.innerHTML = `<p>${track.listeners} oyentes.</p>`
+        
+        contenedorTrack.appendChild(trackName);
+        contenedorTrack.appendChild(trackListeners);
+        topTracksDuaLipa.appendChild(contenedorTrack);
+        
+        i++;
+    }
+});
+
+const imagineDragons = document.getElementById("titulo-imagine-dragons");
+const topTracksImagineDragons = document.getElementById("hover-imagine-dragons");
+
+topTracksImagineDragons.innerHTML = `<h2 class="titulo-top-tracks">Top Tracks</h2>`
+
+imagineDragons.addEventListener("mouseover", (e) => {
+    topTracksImagineDragons.style.display = 'flex';
+    topTracksImagineDragons.style.top = e.pageY + "px";
+    topTracksImagineDragons.style.left = e.pageX + "px";
+});
+
+imagineDragons.addEventListener("mouseout", () => {
+    topTracksImagineDragons.style.display = 'none';
+});
+
+fetch("https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=imagine+dragons&api_key=2d78cc4f3a25bf3251afab29758dc402&format=json&limit=5")
+    .then(response => response.json())
+    .then(data => {
+    let i = 1;
+    for(let track of data.toptracks.track){
+        const trackName = document.createElement("div");
+        const trackListeners = document.createElement("div");
+        const contenedorTrack = document.createElement("div");
+
+        contenedorTrack.classList.add("contenedor-track");
+
+        trackName.innerHTML = `<p>${i}. ${track.name}</p>`
+        trackListeners.innerHTML = `<p>${track.listeners} oyentes.</p>`
+        
+        contenedorTrack.appendChild(trackName);
+        contenedorTrack.appendChild(trackListeners);
+        topTracksImagineDragons.appendChild(contenedorTrack);
+        
+        i++;
+    }
+});
+
+const coti = document.getElementById("titulo-coti");
+const topTracksCoti = document.getElementById("hover-coti");
+
+topTracksCoti.innerHTML = `<h2 class="titulo-top-tracks">Top Tracks</h2>`
+
+coti.addEventListener("mouseover", (e) => {
+    topTracksCoti.style.display = 'flex';
+    topTracksCoti.style.top = e.pageY + "px";
+    topTracksCoti.style.left = e.pageX + "px";
+});
+
+coti.addEventListener("mouseout", () => {
+    topTracksCoti.style.display = 'none';
+});
+
+fetch("https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=coti&api_key=2d78cc4f3a25bf3251afab29758dc402&format=json&limit=5")
+    .then(response => response.json())
+    .then(data => {
+    let i = 1;
+    for(let track of data.toptracks.track){
+        const trackName = document.createElement("div");
+        const trackListeners = document.createElement("div");
+        const contenedorTrack = document.createElement("div");
+
+        contenedorTrack.classList.add("contenedor-track");
+
+        trackName.innerHTML = `<p>${i}. ${track.name}</p>`
+        trackListeners.innerHTML = `<p>${track.listeners} oyentes.</p>`
+        
+        contenedorTrack.appendChild(trackName);
+        contenedorTrack.appendChild(trackListeners);
+        topTracksCoti.appendChild(contenedorTrack);
+        
+        i++;
+    }
+});
+
+const harryStyles = document.getElementById("titulo-harry-styles");
+const topTracksHarryStyles = document.getElementById("hover-harry-styles");
+
+topTracksHarryStyles.innerHTML = `<h2 class="titulo-top-tracks">Top Tracks</h2>`
+
+harryStyles.addEventListener("mouseover", (e) => {
+    topTracksHarryStyles.style.display = 'flex';
+    topTracksHarryStyles.style.top = e.pageY + "px";
+    topTracksHarryStyles.style.left = e.pageX + "px";
+});
+
+harryStyles.addEventListener("mouseout", () => {
+    topTracksHarryStyles.style.display = 'none';
+});
+
+fetch("https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=harry+styles&api_key=2d78cc4f3a25bf3251afab29758dc402&format=json&limit=5")
+    .then(response => response.json())
+    .then(data => {
+    let i = 1;
+    for(let track of data.toptracks.track){
+        const trackName = document.createElement("div");
+        const trackListeners = document.createElement("div");
+        const contenedorTrack = document.createElement("div");
+
+        contenedorTrack.classList.add("contenedor-track");
+
+        trackName.innerHTML = `<p>${i}. ${track.name}</p>`
+        trackListeners.innerHTML = `<p>${track.listeners} oyentes.</p>`
+        
+        contenedorTrack.appendChild(trackName);
+        contenedorTrack.appendChild(trackListeners);
+        topTracksHarryStyles.appendChild(contenedorTrack);
+        
+        i++;
+    }
+});
+
+const valdes = document.getElementById("titulo-valdes");
+const topTracksValdes = document.getElementById("hover-valdes");
+
+topTracksValdes.innerHTML = `<h2 class="titulo-top-tracks">Top Tracks</h2>`
+
+valdes.addEventListener("mouseover", (e) => {
+    topTracksValdes.style.display = 'flex';
+    topTracksValdes.style.top = e.pageY + "px";
+    topTracksValdes.style.left = e.pageX + "px";
+});
+
+valdes.addEventListener("mouseout", () => {
+    topTracksValdes.style.display = 'none';
+});
+
+fetch("https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=valdes&api_key=2d78cc4f3a25bf3251afab29758dc402&format=json&limit=5")
+    .then(response => response.json())
+    .then(data => {
+    let i = 1;
+    for(let track of data.toptracks.track){
+        const trackName = document.createElement("div");
+        const trackListeners = document.createElement("div");
+        const contenedorTrack = document.createElement("div");
+
+        contenedorTrack.classList.add("contenedor-track");
+
+        trackName.innerHTML = `<p>${i}. ${track.name}</p>`
+        trackListeners.innerHTML = `<p>${track.listeners} oyentes.</p>`
+        
+        contenedorTrack.appendChild(trackName);
+        contenedorTrack.appendChild(trackListeners);
+        topTracksValdes.appendChild(contenedorTrack);
+        
+        i++;
+    }
+});
+
+const rayosLaser = document.getElementById("titulo-rayos-laser");
+const topTracksRayosLaser = document.getElementById("hover-rayos-laser");
+
+topTracksRayosLaser.innerHTML = `<h2 class="titulo-top-tracks">Top Tracks</h2>`
+
+rayosLaser.addEventListener("mouseover", (e) => {
+    topTracksRayosLaser.style.display = 'flex';
+    topTracksRayosLaser.style.top = e.pageY + "px";
+    topTracksRayosLaser.style.left = e.pageX + "px";
+});
+
+rayosLaser.addEventListener("mouseout", () => {
+    topTracksRayosLaser.style.display = 'none';
+});
+
+fetch("https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=rayos+laser&api_key=2d78cc4f3a25bf3251afab29758dc402&format=json&limit=5")
+    .then(response => response.json())
+    .then(data => {
+    let i = 1;
+    for(let track of data.toptracks.track){
+        const trackName = document.createElement("div");
+        const trackListeners = document.createElement("div");
+        const contenedorTrack = document.createElement("div");
+
+        contenedorTrack.classList.add("contenedor-track");
+
+        trackName.innerHTML = `<p>${i}. ${track.name}</p>`
+        trackListeners.innerHTML = `<p>${track.listeners} oyentes.</p>`
+        
+        contenedorTrack.appendChild(trackName);
+        contenedorTrack.appendChild(trackListeners);
+        topTracksRayosLaser.appendChild(contenedorTrack);
+        
+        i++;
+    }
+});
